@@ -1,11 +1,6 @@
-﻿using Data.Integrity.Custom;
-using Data.Integrity.Models;
+﻿using Data.Integrity.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace Data.Integrity
 {
@@ -13,7 +8,6 @@ namespace Data.Integrity
     {
         public static void Main(string[] args)
         {
-
             var vehicles = new List<Vehicle> {
                 new Vehicle
                 {
@@ -25,7 +19,7 @@ namespace Data.Integrity
                     Wheels = 4,
                     Mileage = 0,
                     Plate = "847 RB5",
-                    Date = DateTime.Now
+                    Date = new DateTime(2020-12-05)
                 },
                 new Vehicle
                 {
@@ -49,50 +43,28 @@ namespace Data.Integrity
                 },
             };
 
-            ReadProperties(vehicles);
-        }
+            List<string> original = HashUtility.ListToHash(vehicles);
 
-        public static void ReadProperties<T>(List<T> list)
-        {
-            var props = typeof(T).GetProperties()
-                .Where(atr => Attribute.IsDefined(atr, typeof(HashAttribute)))
-                .ToList();
+            vehicles[0].Model = "2019";
+            vehicles[1].Plate = "947 WE3";
 
-            foreach (T item in list)
+            List<string> modified = HashUtility.ListToHash(vehicles);
+
+            for (var i = 0; i < original.Count; i++)
             {
-                var sb = new StringBuilder();
-                foreach (PropertyInfo prop in props)
+                if (original[i].Equals(modified[i]))
                 {
-                    sb.Append(prop.GetValue(item));
-                    Console.WriteLine($"{prop.Name}: {prop.GetValue(item)}");
+                    Console.WriteLine("Original");
+                    Console.WriteLine(original[i]);
+                    Console.WriteLine(modified[i]);
                 }
-                Console.WriteLine(sb.ToString());
-                string hash = GetHash(sb.ToString());
-                Console.WriteLine(hash);
+                else
+                {
+                    Console.WriteLine("Modified");
+                    Console.WriteLine(original[i]);
+                    Console.WriteLine(modified[i]);
+                }
             }
-        }
-
-        private static string GetHash(string input)
-        {
-            using var md5 = MD5.Create();
-            byte[] data = md5.ComputeHash(Encoding.ASCII.GetBytes(input));
-            var sb = new StringBuilder();
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                sb.Append(data[i].ToString("x2"));
-            }
-
-            return sb.ToString();
-
-            //using SHA256 sha256Hash = SHA256.Create();
-            //byte[] data = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
-            //var sb = new StringBuilder();
-            //for (int i = 0; i < data.Length; i++)
-            //{
-            //    sb.Append(data[i].ToString("x2"));
-            //}
-            //return sb.ToString();
         }
     }
 }
